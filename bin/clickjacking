@@ -1,0 +1,80 @@
+#! /bin/bash
+bold=$(tput bold)
+normal=$(tput sgr0)
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+maketmp()
+{
+	mkdir tmp_clickjacking
+	echo -e "${RED}${bold}Clickjacking\n${normal}${BLUE}"
+	read -p "Enter the url: ${normal}" url
+}
+
+html()
+{
+	echo "
+		<html>
+		<head>
+		<title>Clickjack test page</title>
+		</head>
+		<body>
+		<p>Website is vulnerable to clickjacking!</p>
+		<iframe src="$url" width="500" height="500"></iframe>
+		<p>If you can see the webpage inside the box then it is vulnerable to clickjacking.</p>
+		</body>
+		</html>
+" > tmp_clickjacking/clickjacking.html
+}
+
+file_save()
+{	
+	echo -e "${BLUE}"
+	read -p "Do you want to save the PoC ? (yY/nN): ${normal}" save
+		case $save in
+			[yY][eE][sS]|[yY])
+				mv tmp_clickjacking/clickjacking.html $PWD
+				echo -e "${BLUE}Saved as clickjacking.html at $PWD\n"
+				read -p "Do you want to view the PoC ? (yY/nN): ${normal}" view
+				if [ $view == "y" ]; then
+					firefox clickjacking.html
+				else
+					echo -e "${BLUE}PoC not running${normal}"
+				fi
+				rm -r tmp_clickjacking
+			;;
+			*)
+				echo -e "${BLUE}PoC not saved${normal}"
+				rm -r tmp_clickjacking
+			;;
+		esac
+}
+
+	maketmp
+	html
+	file_save
+	
+while true; do
+    echo -e "${RED}[a]. Check Again"
+    echo "[x]. Exit"
+    echo -e "[b]. Back${normal}${BLUE}"
+    read -p "Enter the option: ${normal}" op
+
+    case $op in
+        x)
+            echo -e "${bold}Goodbye${normal} 👋"
+            exit
+            ;;
+        a)
+            maketmp
+	    html
+	    file_save
+            ;;
+        b)
+            pwd
+            source shelter.sh
+            ;;
+        *)
+            echo -e "${BLUE}Invalid Option...${normal}"
+            ;;
+    esac
+done

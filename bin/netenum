@@ -1,0 +1,148 @@
+#!/bin/bash
+
+echo -e "Network Enumeration\n"
+
+main_menu() {
+	echo -e "[1]. Host Discovery"
+	echo "[2]. Service and Version Detection"
+	echo "[3]. OS Detection"
+	echo "[4]. NSE Scripts"
+	echo -e "[5]. Firewall / IDS Evasion and Spoofing"
+}
+
+host_menu() {
+	echo -e "\nNetwork Enumeration - Host Discovery"
+	echo -e "\n[1]. Scan a range (eg: 192.168.1.1-254)"
+	echo "[2]. Scan a domain (eg: scanme.nmap.org)"
+	echo "[3]. Scan specific IPs (eg: 192.168.1.10 192.168.1.50)"
+	echo -e "[4]. Scan using CIDR notation (eg: 192.168.1.0/24)"
+}
+
+srv_menu() {
+	echo -e "\nNetwork Enumeration - Service and Version Detection\n"
+	echo -e "[1]. Normal Scan"
+	echo "[2]. Intensity level 0 to 9. Possibility of correctness"
+	echo "[3]. Enable light mode. Lower possibility of correctness. (Faster)"
+	echo "[4]. Enable intensity level 9. Higher possibility of correctness. (Slower)"
+	echo -e "[5]. Enables OS detection, version detection, script scanning, and traceroute"
+}
+hostscan() {
+    local choice
+    while true; do
+        main_menu
+        read -p "Enter your choice: " choice
+        case $choice in
+            1)
+                host_menu
+                local hstch
+                while true; do
+                    read -p "Enter your choice: " hstch
+                    case $hstch in
+                        1|2|3|4)
+                            read -p "Enter the target IP/domain name: " target
+                            if [[ -n "$target" ]]; then
+                                nmap "$target" -Pn
+                            else
+                                echo -e "Target cannot be empty."
+                            fi
+                            break
+                            ;;  
+                        *)
+                            echo -e "Invalid option! Select a valid option..."
+                            host_menu
+                            ;;
+                    esac
+                done
+                break
+                ;;
+            2)
+            	srv_menu
+            	while true; do
+            	    read -p "Enter your choice: " hstch
+            	    case $hstch in 
+            	    	1)
+            	    	    read -p "Enter the target IP/domain name: " target
+            	    	    if [[ -n "$target" ]]; then
+                                nmap -sV "$target" -Pn
+                            else
+                            	echo "Target cannot be empty."
+                            fi
+                            break
+                            ;;
+                        2)
+            	    	    read -p "Enter the target IP/domain name: " target
+            	    	    read -p "Intensity level 0 to 9: " intlevel
+            	    	    if [[ -n "$target" ]]; then
+                                nmap -sV -version-intensity $intlevel $target -Pn
+                            else
+                            	echo "Target cannot be empty."
+                            fi
+                            break
+                            ;;
+                        3)
+            	    	    read -p "Enter the target IP/domain name: " target
+            	    	    if [[ -n "$target" ]]; then
+                                nmap -sV -version-light $target -Pn
+                            else
+                            	echo "Target cannot be empty."
+                            fi
+                            break
+                            ;;
+                        4)
+            	    	    read -p "Enter the target IP/domain name: " target
+            	    	    if [[ -n "$target" ]]; then
+                                nmap -sV -version-all $target -Pn
+                            else
+                            	echo "Target cannot be empty."
+                            fi
+                            break
+                            ;; 
+                        5)
+            	    	    read -p "Enter the target IP/domain name: " target
+            	    	    if [[ -n "$target" ]]; then
+                                nmap -A $target -Pn
+                            else
+                            	echo "Target cannot be empty."
+                            fi
+                            break
+                            ;;       
+                        *)
+                            echo "Invalid option"
+                            srv_menu
+                            ;;
+                    esac
+                done    
+               	break
+               	;;
+            *)
+                echo -e "Invalid choice!"
+                ;;
+        esac
+    done
+}
+
+hostscan
+
+while true; do
+    echo -e "[a]. Check Again"
+    echo "[x]. Exit"
+    echo -e "[b]. Back"
+    read -p "Enter the option: " op
+
+    case $op in
+        x)
+            echo -e "Goodbye 👋"
+            exit
+            ;;
+        a)
+            hostscan
+            ;;
+        b)
+            pwd
+            source shelter.sh
+            ;;
+        *)
+            echo -e "Invalid Option..."
+            ;;
+    esac
+done

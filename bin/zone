@@ -1,0 +1,52 @@
+#!/bin/bash
+bold=$(tput bold)
+normal=$(tput sgr0)
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+zone(){
+	touch tmp_nameserver.txt
+	echo -e "${RED}${bold}DNS Zone Transfer\n${normal}${BLUE}"
+	read -p "Enter the domain: ${normal}" domain
+	dig $domain ns +short | tee tmp_nameserver.txt
+	count=$(cat tmp_nameserver.txt | wc -l)
+	echo -e "${BLUE}Total ${count} name servers found${normal}"
+
+	while read -r line; do
+    		name=$line
+    		zonetransfer=$(dig axfr $domain @$line)
+    		if [[ -z "$zonetransfer" ]]; then
+       			 echo -e "${BLUE}Zone transfer for ${line} is not available.${normal}"
+    		else
+       		 	echo -e "${BLUE}Zone transferring of ${line} :${normal} ${zonetransfer} \n" 
+    		fi
+	done < tmp_nameserver.txt
+	
+	rm tmp_nameserver.txt
+	echo -e "${BLUE}Script execution completed...${normal}"
+}
+
+zone
+
+while true; do
+    echo -e "${RED}[a]. Check Again"
+    echo "[x]. Exit"
+    echo -e "[b]. Back${normal}${BLUE}"
+    read -p "Enter the option: ${normal}" op
+
+    case $op in
+        x)
+            echo -e "${bold}Goodbye${normal} 👋"
+            exit
+            ;;
+        a)
+            zone
+            ;;
+        b)
+            pwd
+            source shelter.sh
+            ;;
+        *)
+            echo -e "${BLUE}Invalid Option...${normal}"
+            ;;
+    esac
+done

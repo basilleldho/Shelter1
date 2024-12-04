@@ -1,0 +1,67 @@
+#!/bin/bash
+bold=$(tput bold)
+normal=$(tput sgr0)
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+maketmp(){
+mkdir tmp_dom
+touch tmp_dom/tmp_subdomains.txt
+}
+
+collect_subs(){
+	echo -e "${RED}${bold}Subdomain Enumeration\n${normal}${BLUE}"
+	read -p "Target Domain (eg: google.com): ${normal}" dom
+	if [ -n "$dom" ]; then
+		maketmp
+		assetfinder -subs-only $dom | tee tmp_dom/tmp_subdomains.txt
+		count=$(cat tmp_dom/tmp_subdomains.txt | wc -l)
+		echo -e "${BLUE}Total ${count} subdomains found...${normal}"
+		read -p "Do you want to save the subdomains (yY/nN)? " sub_save
+			case $sub_save in
+				[yY])
+					mkdir $dom
+					cp -r tmp_dom/tmp_subdomains.txt $dom/subdomains.txt
+					echo -e "${BLUE}Subdomain saved --> $dom/subdomains.txt${normal}"
+					clean_tmp
+				;;
+				[nN])
+					clean_tmp
+					echo -e "${BLUE}Subdomains not saved...${normal}"
+				;;
+				 *)
+                			echo -e "${BLUE}Invalid input...${normal}"
+			        	clean_tmp
+			        ;;
+			esac
+	fi
+}
+
+clean_tmp(){
+rm -r tmp_dom
+}
+
+collect_subs
+
+while true; do
+    echo -e "${RED}[a]. Check Again"
+    echo "[x]. Exit"
+    echo -e "[b]. Back${normal}${BLUE}"
+    read -p "Enter the option: ${normal}" op
+
+    case $op in
+        x)
+            echo -e "${bold}Goodbye${normal} 👋"
+            exit
+            ;;
+        a)
+            collect_subs
+            ;;
+        b)
+            pwd
+            source shelter.sh
+            ;;
+        *)
+            echo -e "${BLUE}Invalid Option...${normal}"
+            ;;
+    esac
+done

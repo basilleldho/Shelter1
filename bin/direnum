@@ -1,0 +1,107 @@
+#!/bin/bash
+bold=$(tput bold)
+normal=$(tput sgr0)
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+LIGHTCYAN='\033[1;36m'
+# Function to display the menu of wordlists
+display_menu() {
+    echo -e "${RED}${bold}Directory Enumeration${normal}\n"
+    echo -e "${BLUE}Select a wordlist from the following options${normal}"
+    echo -e "${LIGHTCYAN}[1]. /usr/share/wordlists/dirb/common.txt"
+    echo "[2]. /usr/share/wordlists/dirb/big.txt"
+    echo "[3]. /usr/share/wordlists/dirb/medium.txt"
+    echo -e "[4]. Enter a custom wordlist path${normal}"
+}
+
+# Function to perform directory enumeration
+enumerate_directories() {
+    local url=$1
+    local wordlist=$2
+
+    echo -e "\n${BLUE}Starting directory enumeration on $url using wordlist $wordlist...${normal}"
+    gobuster dir -u "$url" -w "$wordlist"
+}
+
+# Function to handle the user input for wordlist selection
+get_wordlist() {
+    local choice
+    while true; do
+        display_menu
+        echo -e "${BLUE}"
+        read -p "Enter your choice (1-4): ${normal}" choice
+        case $choice in
+            1)
+                wordlist="/usr/share/wordlists/dirb/common.txt"
+                break
+                ;;
+            2)
+                wordlist="/usr/share/wordlists/dirb/big.txt"
+                break
+                ;;
+            3)
+                wordlist="/usr/share/wordlists/dirb/medium.txt"
+                break
+                ;;
+            4)
+            	echo -e "${BLUE}"
+                read -p "Enter the path to your custom wordlist: ${normal}" wordlist
+                # Validate the custom wordlist path
+                if [ ! -f "$wordlist" ]; then
+                    echo -e "${BLUE}Custom wordlist file does not exist. Enter a valid path.${normal}"
+                else
+                    break
+                fi
+                ;;
+            *)
+                echo -e "${BLUE}Invalid choice. Select a number between 1 and 4.${normal}"
+                ;;
+        esac
+    done
+    echo -e "${BLUE}Selected wordlist: $wordlist ${normal}"
+}
+
+# Function to handle the user input for the URL
+get_url() {
+    while true; do
+    	echo -e "${BLUE}"
+        read -p "Enter the URL of the website (e.g., http://example.com): ${normal}" url
+        if [[ -z "$url" ]]; then
+            echo -e "${BLUE}URL cannot be empty. Enter a valid URL.${normal}"
+        else
+            echo -e "${BLUE}Selected URL: $url ${normal}"
+            break
+        fi
+    done
+}
+
+# Main script execution
+get_wordlist
+get_url
+enumerate_directories "$url" "$wordlist"
+
+while true; do
+    echo -e "${RED}[a]. Check Again"
+    echo "[x]. Exit"
+    echo -e "[b]. Back${normal}${BLUE}"
+    read -p "Enter the option: ${normal}" op
+
+    case $op in
+        x)
+            echo -e "${bold}Goodbye${normal} 👋"
+            exit
+            ;;
+        a)
+            get_wordlist
+	    get_url
+	    enumerate_directories "$url" "$wordlist"
+            ;;
+        b)
+            pwd
+            source shelter.sh
+            ;;
+        *)
+            echo -e "${BLUE}Invalid Option...${normal}"
+            ;;
+    esac
+done
